@@ -1,16 +1,19 @@
 FROM python:3.10
 
+# OS dependencies
 RUN apt-get update && apt-get install -y g++ cmake
-RUN pip install sqlalchemy psycopg2
 
+# Set workdir
 WORKDIR /app
-COPY main.cpp .
-COPY server.py .
-COPY database.py .
 
+# Copy all files (important!)
+COPY . .
+
+# Build shared C++ library
 RUN g++ -fPIC -shared -o libwordcount.so main.cpp
 
-RUN pip install fastapi uvicorn
+# Install dependencies
+RUN pip install fastapi uvicorn sqlalchemy psycopg2
 
 EXPOSE 8000
 

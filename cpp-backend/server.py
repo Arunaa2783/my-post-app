@@ -1,8 +1,13 @@
+import os
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from database import SessionLocal, create_tables, Post
-from schemas import PostSchema 
+from typing import List
+
+from database import SessionLocal, create_tables
+from models import Post  # SQLAlchemy model
+from schemas import PostSchema, PostCreate  # Pydantic models
+
 app = FastAPI()
 
 # CORS middleware
@@ -25,13 +30,20 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/posts")
+# GET posts - respond with Pydantic model
+@app.get("/posts", response_model=List[PostSchema])
 def get_posts(db: Session = Depends(get_db)):
     return db.query(Post).all()
 
-@app.post("/posts")
-def create_post(post: Post, db: Session = Depends(get_db)):
+# POST new post - accept Pydantic model, create SQLAlchemy object
+@app.post("/posts", response_model=PostSchema)
+def create_post(post_data: PostCreate, db: Session = Depends(get_db)):
+    post = Post(title=post_data.title, body=post_data.body)
     db.add(post)
     db.commit()
     db.refresh(post)
     return post
+
+@app.get("/")
+def root():
+    return {"message": "Backend is running."}

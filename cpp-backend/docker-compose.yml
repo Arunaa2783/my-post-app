@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  post-db:
+    image: postgres
+    container_name: post-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: postdb
+    ports:
+      - "5432:5432"
+    networks:
+      - mynetwork
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d postdb -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # ✅ Keeps DB state persistent and clean
+
+  fastapi:
+    build: .
+    container_name: cpp-backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      post-db:
+        condition: service_healthy
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+
+volumes:
+  postgres_data:

@@ -6,7 +6,6 @@ from database import Post, SessionLocal, Base, engine
 # DB Setup
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
 
 # Allow frontend to call backend APIs
 app.add_middleware(
@@ -25,12 +24,10 @@ def get_db():
     finally:
         db.close()
 
-# GET /posts - fetch all posts from DB
 @app.get("/posts")
 def get_posts(db: Session = Depends(get_db)):
     return db.query(Post).all()
 
-# POST /posts - create a new post
 @app.post("/posts")
 def create_post(post: dict, db: Session = Depends(get_db)):
     new_post = Post(title=post["title"], body=post["body"])

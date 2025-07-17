@@ -1,10 +1,14 @@
-# schemas.py
 from pydantic import BaseModel
 
-class PostSchema(BaseModel):
-    id: int
+class PostBase(BaseModel):
     title: str
     body: str
 
+class PostCreate(PostBase):
+    pass
+
+class PostSchema(PostBase):
+    id: int
+
     class Config:
-        orm_mode = True  # Tells Pydantic to read data from ORM objects
+        orm_mode = True
