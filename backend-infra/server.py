@@ -47,3 +47,18 @@ def create_post(post_data: PostCreate, db: Session = Depends(get_db)):
 @app.get("/")
 def root():
     return {"message": "Backend is running."}
+
+class PostUpdate(BaseModel):
+    title: str
+    body: str
+
+@app.put("/posts/{post_id}")
+def update_post(post_id: int, updated: PostUpdate, db: Session = Depends(get_db)):
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    post.title = updated.title
+    post.body = updated.body
+    db.commit()
+    db.refresh(post)
+    return post
