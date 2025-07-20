@@ -2,6 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from database import Post, SessionLocal, Base, engine
+import requests
+import psycopg2
 
 API_KEY = "my-secret-api-key"
 
@@ -23,6 +25,35 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+def sync_posts_if_needed():
+    conn = psycopg2.connect(
+        dbname="postdb",
+        user="postgres",
+        password="secret",
+        host="localhost",
+        port=5432
+    )
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM posts;")
+    count = cur.fetchone()[0]
+    if count == 0:
+        print("DB is empty. Populating from API...")
+        resp = requests.get("https://jsonplaceholder.typicode.com/posts")
+        posts = resp.json()
+        for post in posts:
+            cur.execute("""
+                INSERT INTO posts (id, userId, title, body)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (id) DO NOTHING;
+            """, (post["id"], post["userId"], post["title"], post["body"]))
+        conn.commit()
+    cur.close()
+    conn.close()
+
+@app.on_event("startup")
+def startup_event():
+    sync_posts_if_needed()
 
 # DB session dependency
 def get_db():
