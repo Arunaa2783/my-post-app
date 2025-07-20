@@ -1,3 +1,4 @@
+import PostsList from "./src/components/PostsList";
 import Image from "next/image";
 
 export default function Home() {
@@ -50,6 +51,9 @@ export default function Home() {
             Read our docs
           </a>
         </div>
+
+        {/* --- POSTS LIST COMPONENT ADDED BELOW --- */}
+        <PostsList />
       </main>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
         <a

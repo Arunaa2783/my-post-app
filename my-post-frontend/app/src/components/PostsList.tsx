@@ -1,3 +1,4 @@
+"use client";
 // frontend/src/components/PostsList.tsx
 import React, { useEffect, useState } from "react";
 import { fetchPosts } from "../services/api";
